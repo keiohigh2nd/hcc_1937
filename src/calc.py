@@ -16,9 +16,9 @@ def centrality_distribution(G):
     centrality /= centrality.sum()
     return centrality
 
-def calc_entropy(G):
+def calc_entropy(G, t):
   d = centrality_distribution(G)
-  return math.exp(entropy(d)/100)
+  return math.exp(entropy(d)/10*t)
 
 def convert_volume(m):
     vl = math.pow(m, 1.5)

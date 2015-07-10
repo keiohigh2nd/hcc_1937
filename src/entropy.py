@@ -5,9 +5,8 @@ import math, random, datetime
 import matplotlib.pyplot as plt
 import scipy as sp
 from scipy import stats
-import calc, graph, draw
+import calc, graph, draw, optimize
 
-   
 def regression(raw, sim):
     time_point = len(raw[0])
     sim_tmp = len(sim)/time_point
@@ -22,39 +21,11 @@ def regression(raw, sim):
 
     return diff
 
-
-def check_diff(raw, sim):
-    time_point = len(raw[0])
-    sim_tmp = len(sim)/time_point
-
-    diff = []
-    sim_p = []
-    for i in range(len(raw)):#3 lane
-      for j in range(time_point):# 1 lane
-        if str(float(raw[i][j])) != str(float('inf')) and str(float(raw[i][j])) != str(float('nan')):
-          #Consider More How to Compare ratios between ran and simulation
-          diff.append((raw[i][j]-sim[j*sim_tmp])**2)
-          sim_p.append(sim[j*sim_tmp])
-        else:
-          sim_p.append(sim[j*sim_tmp])
-
-    """
-    #Pvalue Check
-    #Don't input nan in ratio list 
-    raw[0] = check_nan(raw[0])
-    print sim_p[0:8] 
-    t,p = stats.ttest_rel(raw[0], sim_p[0:8])    
-    print p
-    """
-    tmp = np.array(diff)
-    return np.average(tmp)
-
-
 def update_all_parameter(diff):
     #print 'each difference -  %s' % diff
     luc_node = int(30*diff)
     hcc_node = int(5)
-    time = 100
+    time = 10
 
     #parameter
     luc_gro = int(6*diff)
@@ -79,19 +50,22 @@ def update_all_parameter(diff):
     #Number of initial cell 
     LucN0 = 100
     hccN0 = 100
+    LucN_init = 100
+    hccN_init = 100
 
     for t in range(time):
       LucN.append(calc.convert_volume(LucN0))
       lucG = graph.update_graph(lucG, luc_gro)
-      LucN0 = LucN0*calc.calc_entropy(lucG)
+      LucN0 = LucN_init*calc.calc_entropy(lucG, t+1)
 
     for t in range(time):
       hccN.append(calc.convert_volume(hccN0))
       hccG = graph.update_graph(hccG, hcc_gro)
-      hccN0 = hccN0*calc.calc_entropy(hccG)
+      hccN0 = hccN_init*calc.calc_entropy(hccG, t+1)
 
     #Mix Number of cell
     MixN0 = 100
+    MixN_init = 100
     initial_populations = MixN0*frequency
     G_comb_gro = ((frequency*np.array([luc_gro, hcc_gro])).sum())/2
     MixN = []
@@ -100,18 +74,18 @@ def update_all_parameter(diff):
       x.append(t)
       MixN.append(calc.convert_volume(MixN0))
       G_combine = graph.update_graph(G_combine, G_comb_gro)
-      MixN0 = MixN0*calc.calc_entropy(G_combine)
+      MixN0 = MixN_init*calc.calc_entropy(G_combine, t+1)
  
     sim_ratio =  np.array(LucN)/np.array(MixN)
     return sim_ratio
 
 if __name__ == '__main__':
     #parameter
-    luc_node = 30
-    hcc_node = 10 
+    luc_node = 100
+    hcc_node = 90 
     time = 100
-    luc_gro = 6
-    hcc_gro = 3
+    luc_gro = 10
+    hcc_gro = 2
 
     #Generate Graph
     lucG = nx.barabasi_albert_graph(luc_node, luc_gro)
@@ -132,19 +106,23 @@ if __name__ == '__main__':
     #Number of initial cell 
     LucN0 = 100
     hccN0 = 100
+    LucN_init = 100
+    hccN_init = 100
+
 
     for t in range(time):
       LucN.append(calc.convert_volume(LucN0))
       lucG = graph.update_graph(lucG, luc_gro)
-      LucN0 = LucN0*calc.calc_entropy(lucG)
+      LucN0 = LucN_init*calc.calc_entropy(lucG, t+1)
       
     for t in range(time):
       hccN.append(calc.convert_volume(hccN0))
       hccG = graph.update_graph(hccG, hcc_gro)
-      hccN0 = hccN0*calc.calc_entropy(hccG)
+      hccN0 = hccN_init*calc.calc_entropy(hccG, t+1)
 
     #Mix Number of cell
     MixN0 = 100
+    MixN_init = 100
     initial_populations = MixN0*frequency
     G_comb_gro = ((frequency*np.array([luc_gro, hcc_gro])).sum())/2
     MixN = []
@@ -153,23 +131,32 @@ if __name__ == '__main__':
       x.append(t)
       MixN.append(calc.convert_volume(MixN0))
       G_combine = graph.update_graph(G_combine, G_comb_gro)
-      MixN0 = MixN0*calc.calc_entropy(G_combine)
+      MixN0 = MixN_init*calc.calc_entropy(G_combine, t+1)
 
     #Combine_1
     MixN0_1 = 100
+    MixN1_init = 100
     G_comb_gro_1 = ((frequency_1*np.array([luc_gro, hcc_gro])).sum())/2
     MixN_1 = []
     for t in range(time):
       MixN_1.append(calc.convert_volume(MixN0_1))
       G_combine_1 = graph.update_graph(G_combine_1, G_comb_gro_1)
-      MixN0_1 = MixN0_1*calc.calc_entropy(G_combine_1)
+      MixN0_1 = MixN1_init*calc.calc_entropy(G_combine_1, t+1)
 
-    #Regression
+
+    #Number Correlation
+    p0 = optimize.num_corrcoef(LucN, hccN, MixN)
+   
+    #Grow Ratio
     sim_ratio =  np.array(LucN)/np.array(MixN)
     raw_ratio = graph.read_data()
-    diff = regression(raw_ratio, sim_ratio)
+    p = optimize.corrcoef(raw_ratio, sim_ratio)
 
+    draw.fig(x, hccN, LucN, MixN, MixN_1)
+
+    """
     #Finish condition
+    diff = regression(raw_ratio, sim_ratio)
     for k in xrange(1):#iteration 
       for i in xrange(len(diff)):#timepoint difference 
         diff = regression(raw_ratio, sim_ratio)
@@ -184,5 +171,4 @@ if __name__ == '__main__':
       else:
         print ave
 
-
-    draw.fig(x, hccN, LucN, MixN, MixN_1)
+    """
