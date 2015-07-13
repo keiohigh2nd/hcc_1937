@@ -23,9 +23,55 @@ def fit_exp_linear(parameter, x, y):
 def exp_string(a, b):
     return "$y = %0.4f e^{ %0.4f x}$" % (a, b)
 
+def check_number_of_cells(sim, raw, text):
+    for t in range(len(sim)):
+      print 'Sim = %s -- Raw = %s ' % (sim[t], raw[0][t])
+    draw.cells_fig(sim, raw, text)
+
+def num_cell_corrcoef(LucN, hccN, MixN, mm2):
+    r_LucN, r_hccN, r_MixN = graph.num_read_cells(mm2)
+
+    time_point = len(r_LucN[0])#8
+    sim_tmp = len(LucN)/time_point #1.25
+
+    #Put simulation data into raw data format
+    LucN_p = []
+    hccN_p = []
+    MixN_p = []
+    for t in range(time_point):
+        LucN_p.append(LucN[int(round(t*sim_tmp))])
+        hccN_p.append(hccN[int(round(t*sim_tmp))])
+        MixN_p.append(MixN[int(round(t*sim_tmp))])
+
+    print 'Simulation vs Raw'
+    print 'Luc' 
+    print check_number_of_cells(LucN_p, r_LucN, 'Luc')
+    print 'Mix'
+    print check_number_of_cells(MixN_p, r_MixN, 'Mix')
+    print 'hcc'
+    print check_number_of_cells(hccN_p, r_hccN, 'HCC')
+    draw.all_cells_fig(LucN_p, r_LucN, MixN_p, r_MixN, hccN_p, r_hccN)
+
+    corr_Luc = []
+    corr_hcc = []
+    corr_Mix = []
+    for i in range(len(r_LucN)): #times of experiments
+      tmp_Luc = np.corrcoef(r_LucN[i], LucN_p)
+      tmp_hcc = np.corrcoef(r_hccN[i], hccN_p)
+      tmp_Mix = np.corrcoef(r_MixN[i], MixN_p)
+      corr_Luc.append(tmp_Luc[0,1])
+      corr_hcc.append(tmp_hcc[0,1])
+      corr_Mix.append(tmp_Mix[0,1])
+
+    print 'Average Correlation Luc = %s, HCC = %s, Mix ~ %s ' % (np.average(np.array(corr_Luc)), np.average(np.array(corr_hcc)), np.average(np.array(corr_Mix)))
+
+    return 0
+
+
+
 def num_corrcoef(LucN, hccN, MixN):
     r_LucN, r_hccN, r_MixN = graph.num_read_data()
-
+    
     time_point = len(r_LucN[0])#8
     sim_tmp = len(LucN)/time_point #1.25
 
@@ -37,17 +83,21 @@ def num_corrcoef(LucN, hccN, MixN):
         hccN_p.append(hccN[int(round(t*sim_tmp))])
         MixN_p.append(MixN[int(round(t*sim_tmp))])
 
-
-    corr = []
+    corr_Luc = []
+    corr_hcc = []
+    corr_Mix = []
     for i in range(len(r_LucN)): #times of experiments
       tmp_Luc = np.corrcoef(r_LucN[i], LucN_p)
       tmp_hcc = np.corrcoef(r_hccN[i], hccN_p)
       tmp_Mix = np.corrcoef(r_MixN[i], MixN_p)
-      corr.append(tmp_Luc[0,1])
-      corr.append(tmp_hcc[0,1])
-      corr.append(tmp_Mix[0,1])
+      corr_Luc.append(tmp_Luc[0,1])
+      corr_hcc.append(tmp_hcc[0,1])
+      corr_Mix.append(tmp_Mix[0,1])
 
-    print corr
+    print corr_hcc
+    print np.average(np.array(corr_Luc))
+    print np.average(np.array(corr_hcc))
+    print np.average(np.array(corr_Mix))
     return 0
 
 def corrcoef(raw, sim):
@@ -86,40 +136,3 @@ def check_diff(raw, sim):
     tmp = np.array(diff)
     return np.average(tmp)
 
-if __name__ == "__main__":
-    x,y = graph.opt_read_data(2)
-
-    print x
-    print y
-    parameter0 = [1, 0.03]
-    r1 = scipy.optimize.leastsq(fit_exp, parameter0, args=(x, y))
-    r2 = scipy.optimize.leastsq(fit_exp_linear, parameter0, args=(x, y))
-
-    model_func = lambda a, b, x: a * numpy.exp(b * x)
-
-    fig = plt.figure()
-
-    ax1 = fig.add_subplot(2, 1, 1)
-    ax2 = fig.add_subplot(2, 1, 2)
-
-    ax1.plot(x, y, "ro")
-    ax2.plot(x, y, "ro")
-
-    xx = numpy.arange(0.7, 0.2, -0.01)
-
-    print r1
-    ax1.plot(xx, model_func(r1[0][0], r1[0][1], xx))
-    ax2.plot(xx, model_func(r2[0][0], r2[0][1], xx))
-
-    #ax1.legend(("Sample Data", "Fitted Function:\n" + exp_string(r1[0][0], r1[0][1])),"upper left")
-    #ax2.legend(("Sample Data", "Fitted Function:\n" + exp_string(r2[0][0], r2[0][1])), "upper left")
-
-    ax1.set_title("Non-linear fit")
-    ax2.set_title("Linear fit")
-
-    ax1.grid(True)
-    ax2.grid(True)
-
-    #plt.show()
-    d = datetime.datetime.today()
-    plt.savefig('result/opt_%s_%s_.png' % (str(d.day),  str(random.randint(1,1000))))

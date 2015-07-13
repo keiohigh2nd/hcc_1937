@@ -34,6 +34,15 @@ def num_read_data():
     mix_data = np.loadtxt('data/10-90_r.csv', delimiter=",", skiprows = 1)
     return luc_data, hcc_data, mix_data
 
+def num_read_cells(mm2):
+    mm3 = calc.convert_volume(mm2)*10**3
+    luc_data = np.loadtxt('data/100-0_r.csv', delimiter=",") + 1
+    hcc_data = np.loadtxt('data/0-100_r.csv', delimiter=",") + 1
+    mix_data = np.loadtxt('data/10-90_r.csv', delimiter=",", skiprows = 1) + 1
+   
+    print luc_data*mm3
+    return luc_data*mm3, hcc_data*mm3, mix_data*mm3
+
 def read_data():
     #3 samples per 7 time point
     luc_data = np.loadtxt('data/100-0_r.csv', delimiter=",")
