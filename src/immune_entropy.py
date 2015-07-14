@@ -9,10 +9,10 @@ import calc, graph, draw, optimize, statistic_test
 
 if __name__ == '__main__':
     #parameter
-    luc_node = 100
+    luc_node = 80
     hcc_node = 10 
     time = 15
-    luc_gro = 12
+    luc_gro = 6
     hcc_gro = 2
     #immune_cell = 0.1
 
@@ -23,6 +23,10 @@ if __name__ == '__main__':
     frequency = np.array([0.9, 0.1])
     G_combine =nx.Graph()
     G_combine = graph.merge_graph(G_combine, hccG, lucG, frequency)
+
+    frequency_1 = np.array([0.5, 0.5])
+    G_combine_1 =nx.Graph()
+    G_combine_1 = graph.merge_graph(G_combine_1, hccG, lucG, frequency_1)
 
     #Time series cell volume
     LucN = []

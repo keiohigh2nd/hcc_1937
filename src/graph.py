@@ -9,9 +9,11 @@ import calc
 
 def update_graph(G, gro):
     target_nodes = calc.find_max_nodes(G)
-    return calc.add_edges(G, target_nodes, gro)
+    #return calc.add_edges(G, target_nodes, gro)
+    return calc.add_random_edges(G, target_nodes, gro)
 
 def merge_graph(G, G1, G2, frequency):
+    #HCC is 0.9, Luc is 0.1 make sure
     n1 = G1.number_of_edges()
     n2 = G2.number_of_edges()
 

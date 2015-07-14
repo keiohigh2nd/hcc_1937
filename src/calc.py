@@ -18,7 +18,9 @@ def centrality_distribution(G):
 
 def calc_entropy(G, t):
   d = centrality_distribution(G)
-  return math.exp(entropy(d)/10*t)
+  print entropy(d)
+  #return math.exp(entropy(d)/10*t - 0.05*t)
+  return math.exp(entropy(d)/10*t - (1/entropy(d))*t)
 
 def convert_volume(m):
     vl = math.pow(m, 1.5)
@@ -35,6 +37,15 @@ def add_edges(G, res, gro):
         tmp = random.randint(0,nx.number_of_nodes(G))
         for j in res:
           G.add_edge(tmp, j[0])
+
+    return G
+
+def add_random_edges(G, res, gro):
+    for i in range(int(gro)):
+        tmp = random.randint(0,nx.number_of_nodes(G))
+        for j in res:
+          tmp_1 = random.randint(0,nx.number_of_nodes(G))
+          G.add_edge(tmp, tmp_1)
 
     return G
 
