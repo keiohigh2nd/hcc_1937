@@ -9,12 +9,12 @@ import calc, graph, draw, optimize, statistic_test, degree
 
 if __name__ == '__main__':
     #parameter
-    luc_node = 100
-    hcc_node = 10
+    luc_node = 80
+    hcc_node = 17
  
     time = 12
 
-    luc_gro = 10
+    luc_gro = 20
     hcc_gro = 3
     #immune_cell = 0.1
 
@@ -24,7 +24,7 @@ if __name__ == '__main__':
 
     frequency = np.array([0.9, 0.1])
     G_combine =nx.Graph()
-    G_combine = graph.merge_graph(G_combine, hccG, lucG, frequency)
+    G_combine = graph.merge_graph_by_rank(G_combine, hccG, lucG, frequency)
 
     #Time series cell volume
     LucN = []
@@ -63,6 +63,30 @@ if __name__ == '__main__':
       MixN0 = MixN_init*calc.calc_entropy(G_combine, t+1)
 
 
+    #Cut-off HUB
+    long_time = 15
+    c_MixN0 = 10**cell_order
+    c_MixN_init = 10**cell_order
+    c_mix_new = 10
+    c_initial_populations = c_MixN0*frequency
+    c_G_comb_gro = ((frequency*np.array([luc_gro, hcc_gro])).sum())/2
+    c_MixN = []
+    c_x = []
+    for t in range(long_time):
+      c_x.append(t)
+      c_MixN.append(calc.convert_volume(c_MixN0))
+      c_G_combine = graph.update_graph_mix_new(G_combine, G_comb_gro, c_mix_new)
+      if t > 5: #anti-drug
+        decreased_G_combine = graph.cut_graph(c_G_combine)
+        c_MixN0 = c_MixN_init*calc.calc_entropy(decreased_G_combine, t+1)
+      if t > 12: #new drug
+        decreased_G_combine = graph.cut_graph(c_G_combine)
+        c_MixN0 = c_MixN_init*calc.calc_entropy(decreased_G_combine, t+1)
+        print calc.calc_entropy(decreased_G_combine, t+1)
+      else:
+        c_MixN0 = c_MixN_init*calc.calc_entropy(c_G_combine, t+1)
+     
+    draw.effect(c_MixN) 
 
     #Simple Correlation
     #p0 = optimize.num_corrcoef(LucN, hccN, MixN)
@@ -76,7 +100,8 @@ if __name__ == '__main__':
     #p1 = optimize.num_cell_corrcoef(LucN, hccN, MixN, mm2)
 
     #Number Correlation
-    p2 = optimize.num_volume_corrcoef(LucN, hccN, MixN, mm2)
+    #p2 = optimize.num_volume_corrcoef(LucN, hccN, MixN, mm2)
+    p2 = optimize.num_volume_corrcoef_cut(LucN, hccN, MixN, c_MixN, mm2)
 
     #CCC
     #statistic_test.ccc_test(LucN, hccN, MixN, mm2)

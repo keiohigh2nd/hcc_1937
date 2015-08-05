@@ -1,0 +1,13 @@
+Couldn't import dot_parser, loading of dot files will not be possible.
+Traceback (most recent call last):
+  File "src/hcc_luc_mix_ful_gene_top50_network.py", line 100, in <module>
+    plt.figure(1,figsize=(80,80))
+  File "/home/keiohigh2nd/.local/lib/python2.7/site-packages/matplotlib-1.4.2-py2.7-linux-x86_64.egg/matplotlib/pyplot.py", line 435, in figure
+    **kwargs)
+  File "/home/keiohigh2nd/.local/lib/python2.7/site-packages/matplotlib-1.4.2-py2.7-linux-x86_64.egg/matplotlib/backends/backend_tkagg.py", line 81, in new_figure_manager
+    return new_figure_manager_given_figure(num, figure)
+  File "/home/keiohigh2nd/.local/lib/python2.7/site-packages/matplotlib-1.4.2-py2.7-linux-x86_64.egg/matplotlib/backends/backend_tkagg.py", line 89, in new_figure_manager_given_figure
+    window = Tk.Tk()
+  File "/home/appl/Python-2.7/lib/python2.7/lib-tk/Tkinter.py", line 1745, in __init__
+    self.tk = _tkinter.create(screenName, baseName, className, interactive, wantobjects, useTk, sync, use)
+_tkinter.TclError: couldn't connect to display "localhost:11.0"

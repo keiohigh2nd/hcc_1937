@@ -5,7 +5,7 @@ import numpy as np
 import datetime, random
 import scipy.optimize
 import matplotlib.pyplot as plt
-import graph, draw
+import graph, draw, calc
 from matplotlib import cbook
 
 def fit_exp(parameter, x, y):
@@ -29,19 +29,30 @@ def check_number_of_cells(sim, raw, text):
     draw.cells_fig(sim, raw, text)
 
 def num_cell_corrcoef(LucN, hccN, MixN, mm2):
+    #Raw Data
     r_LucN, r_hccN, r_MixN = graph.num_read_cells(mm2)
 
-    time_point = len(r_LucN[0])#8
-    sim_tmp = len(LucN)/time_point #1.25
+    #Adjustment of  Timeseries   
+    time_point = len(r_LucN[0]) # Experiments
+    sim_time_point = len(LucN) # Simulation time
+    sim_tmp = (len(LucN)*0.66)/(time_point-1) #1.25
 
-    #Put simulation data into raw data format
+    #Simulation timepoint
     LucN_p = []
     hccN_p = []
     MixN_p = []
+
     for t in range(time_point):
+      if t != 0:
+        print int(sim_time_point*0.3 + round(t*sim_tmp))
+        LucN_p.append(LucN[int(sim_time_point*0.3 + round(t*sim_tmp))])
+        hccN_p.append(hccN[int(sim_time_point*0.3 + round(t*sim_tmp))])
+        MixN_p.append(MixN[int(sim_time_point*0.3 + round(t*sim_tmp))])
+      else:
         LucN_p.append(LucN[int(round(t*sim_tmp))])
         hccN_p.append(hccN[int(round(t*sim_tmp))])
         MixN_p.append(MixN[int(round(t*sim_tmp))])
+
 
     print 'Simulation vs Raw'
     print 'Luc' 
@@ -64,24 +75,113 @@ def num_cell_corrcoef(LucN, hccN, MixN, mm2):
       corr_Mix.append(tmp_Mix[0,1])
 
     print 'Average Correlation Luc = %s, HCC = %s, Mix ~ %s ' % (np.average(np.array(corr_Luc)), np.average(np.array(corr_hcc)), np.average(np.array(corr_Mix)))
-
     return 0
+
+
+def num_volume_corrcoef(LucN, hccN, MixN, mm2):
+    #Raw Data
+    r_LucN, r_hccN, r_MixN = graph.num_read_volume()
+
+    #Adjustment of  Timeseries   
+    time_point = len(r_LucN[0]) # Experiments
+    sim_time_point = len(LucN) # Simulation time
+    sim_tmp = (len(LucN)*0.66)/(time_point-1) #1.25
+
+    #Simulation timepoint
+    LucN_p = []
+    hccN_p = []
+    MixN_p = []
+
+    for t in range(time_point):
+      if t != 0:
+        print int(sim_time_point*0.3 + round(t*sim_tmp))
+        LucN_p.append(LucN[int(sim_time_point*0.3 + round(t*sim_tmp))])
+        hccN_p.append(hccN[int(sim_time_point*0.3 + round(t*sim_tmp))])
+        MixN_p.append(MixN[int(sim_time_point*0.3 + round(t*sim_tmp))])
+      else:
+        LucN_p.append(LucN[int(round(t*sim_tmp))])
+        hccN_p.append(hccN[int(round(t*sim_tmp))])
+        MixN_p.append(MixN[int(round(t*sim_tmp))])
+
+
+    print 'Simulation vs Raw'
+    print 'Luc'
+    LucN_v = check_number_of_volume(LucN_p, r_LucN, mm2,'Luc')
+    print 'Mix'
+    MixN_v = check_number_of_volume(MixN_p, r_MixN, mm2, 'Mix')
+    print 'hcc'
+    hccN_v = check_number_of_volume(hccN_p, r_hccN, mm2, 'HCC')
+    draw.all_cells_fig(LucN_v, r_LucN, MixN_v, r_MixN, hccN_v, r_hccN)
+
+def num_volume_corrcoef_cut(LucN, hccN, MixN, c_MixN, mm2):
+    print c_MixN
+    #Raw Data
+    r_LucN, r_hccN, r_MixN = graph.num_read_volume()
+
+    #Adjustment of  Timeseries   
+    time_point = len(r_LucN[0]) # Experiments
+    sim_time_point = len(LucN) # Simulation time
+    sim_tmp = (len(LucN)*0.66)/(time_point-1) #1.25
+
+    #Simulation timepoint
+    LucN_p = []
+    hccN_p = []
+    MixN_p = []
+    c_MixN_p = []
+
+    for t in range(time_point):
+      if t != 0:
+        print int(sim_time_point*0.3 + round(t*sim_tmp))
+        LucN_p.append(LucN[int(sim_time_point*0.3 + round(t*sim_tmp))])
+        hccN_p.append(hccN[int(sim_time_point*0.3 + round(t*sim_tmp))])
+        MixN_p.append(MixN[int(sim_time_point*0.3 + round(t*sim_tmp))])
+        c_MixN_p.append(c_MixN[int(sim_time_point*0.3 + round(t*sim_tmp))])
+      else:
+        LucN_p.append(LucN[int(round(t*sim_tmp))])
+        hccN_p.append(hccN[int(round(t*sim_tmp))])
+        MixN_p.append(MixN[int(round(t*sim_tmp))])
+        c_MixN_p.append(c_MixN[int(round(t*sim_tmp))])
+
+
+    print 'Simulation vs Raw'
+    print 'Luc'
+    LucN_v = check_number_of_volume(LucN_p, r_LucN, mm2,'Luc')
+    print 'Mix'
+    MixN_v = check_number_of_volume(MixN_p, r_MixN, mm2, 'Mix')
+    print 'hcc'
+    hccN_v = check_number_of_volume(hccN_p, r_hccN, mm2, 'HCC')
+    print 'cut-off-Mix'
+    c_MixN_v = check_number_of_volume(c_MixN_p, r_MixN, mm2, 'c-Mix')
+
+    #draw.all_cells_fig(LucN_v, r_LucN, MixN_v, r_MixN, hccN_v, r_hccN)
+    draw.all_cells_fig_cut(LucN_v, r_LucN, MixN_v, r_MixN, hccN_v, r_hccN, c_MixN_v)
 
 
 
 def num_corrcoef(LucN, hccN, MixN):
+    #Raw Data
     r_LucN, r_hccN, r_MixN = graph.num_read_data()
-    
-    time_point = len(r_LucN[0])#8
-    sim_tmp = len(LucN)/time_point #1.25
 
+    #Adjustment of  Timeseries   
+    time_point = len(r_LucN[0]) # Experiments
+    sim_time_point = len(LucN) # Simulation time
+    sim_tmp = (len(LucN)*0.66)/(time_point-1) #1.25
+
+    #Simulation timepoint
     LucN_p = []
     hccN_p = []
     MixN_p = []
+
     for t in range(time_point):
+      if t != 0: 
+        print int(sim_tim_point*0.3 + round(t*sim_tmp))
+        LucN_p.append(LucN[int(sim_tim_point*0.3 + round(t*sim_tmp))])
+        hccN_p.append(hccN[int(sim_tim_point*0.3 + round(t*sim_tmp))])
+        MixN_p.append(MixN[int(sim_tim_point*0.3 + round(t*sim_tmp))])
+      else:
         LucN_p.append(LucN[int(round(t*sim_tmp))])
         hccN_p.append(hccN[int(round(t*sim_tmp))])
-        MixN_p.append(MixN[int(round(t*sim_tmp))])
+        MixN_p.append(MixN[int(round(t*sim_tmp))])    
 
     corr_Luc = []
     corr_hcc = []
@@ -117,6 +217,16 @@ def corrcoef(raw, sim):
     draw.ratio_fig(raw, sim_p)
     print corr
     return corr
+
+def check_number_of_volume(sim, raw, mm2, text):
+    sim_size = []
+    for t in range(len(sim)):
+      tmp = graph.calculate_mm3(sim[t], mm2)
+      sim_size.append(tmp)
+      print 'Sim size = %s/mm3 -- Raw size = %s/mm3 ' % (str(tmp), raw[0][t])
+    return sim_size
+    #draw.volume_fig(sim_size, raw, text)
+
 
 def check_diff(raw, sim):
     time_point = len(raw[0])

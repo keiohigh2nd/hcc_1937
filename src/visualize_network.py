@@ -1,6 +1,6 @@
 import networkx as nx
 import matplotlib.pyplot as plt
-import csv
+import csv,random, datetime
 import itertools
 
 
@@ -10,38 +10,48 @@ im_edges = list(itertools.combinations(h_targets + m_targets ,2))
 
 G=nx.Graph()
 
-f = open('data/human_mouse_edge.csv')
+f = open('data/human_mouse_180_genemania_network.csv')
 lines = f.read().split('\r')
 f.close()
+
 
 for line in lines:
   tmp = line.split(',')
   G.add_edge(tmp[0], tmp[1],weight=float(tmp[2].strip('\r')))
 
+
+
 plt.figure(1,figsize=(40,40))
 
 #Form of Graph
 #pos=nx.spring_layout(G) 
-pos=nx.graphviz_layout(G,prog="dot")
+#pos=nx.graphviz_layout(G,prog="dot")
 #pos=nx.graphviz_layout(G)
 #pos=nx.graphviz_layout(G,prog='twopi',args='')
+pos=nx.graphviz_layout(G,prog="twopi",root=0)
 
+nx.draw_networkx_nodes(G,pos,
+                       nodelist=G.nodes(),
+                       node_color='w',
+                       node_size=10,
+                       alpha=0.8)
 
 nx.draw_networkx_nodes(G,pos,
                        nodelist=h_targets,
                        node_color='r',
                        node_size=500,
-                   alpha=0.8)
+                       alpha=0.8)
 
 nx.draw_networkx_nodes(G,pos,
                        nodelist=m_targets,
                        node_color='b',
                        node_size=500,
-                   alpha=0.8)
+                       alpha=0.8)
+
 
 nx.draw_networkx_edges(G,pos,
                        edgelist=im_edges,
-                       width=8,alpha=0.5,edge_color='g')
+                       width=5,alpha=0.5,edge_color='g')
 
 nx.draw_networkx_edges(G,pos,width=1.0,alpha=0.8)
 
@@ -50,5 +60,5 @@ nx.draw_networkx_labels(G,pos,font_size=14, fontweight='bold')
 
 #ouput
 plt.axis('off')
-plt.savefig("result/human_mouse_interaction.png") 
-
+d = datetime.datetime.today()
+plt.savefig("result/human_mouse_interaction_%s_%s.png"% (str(d.day),  str(random.randint(1,1000))))

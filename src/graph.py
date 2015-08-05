@@ -12,6 +12,10 @@ def update_graph(G, gro):
     #return calc.add_edges(G, target_nodes, gro)
     return calc.add_random_edges(G, target_nodes, gro)
 
+def update_graph_mix_new(G, gro, mix_new):
+    target_nodes = calc.find_max_nodes(G)
+    return calc.add_random_edges_nodes(G, target_nodes, gro, mix_new)
+
 def merge_graph(G, G1, G2, frequency):
     #HCC is 0.9, Luc is 0.1 make sure
     n1 = G1.number_of_edges()
@@ -30,6 +34,42 @@ def merge_graph(G, G1, G2, frequency):
 
     return G
 
+def merge_graph_by_rank(G, G1, G2, frequency):
+    #HCC is 0.9, Luc is 0.1 make sure
+    n1 = G1.number_of_edges()
+    n2 = G2.number_of_edges()
+
+    e1 = G1.edges()
+    e2 = G2.edges()
+
+    for i in range(int(n1*frequency[0])):
+      tmp = random.randint(0,n1-1)
+      G.add_edge(e1[tmp][0], e1[tmp][1])
+
+    target_nodes = calc.find_max_nodes(G2)
+    print 'Top nodes'
+    print target_nodes 
+
+    for i in range(int(n2*frequency[1])):
+      tmp = random.randint(0,n2-1)
+      #Top target
+      random_tmp = random.choice(target_nodes) 
+      #Target of top targets
+      random_tmp_target = random.choice(G2.neighbors(random_tmp[0]))
+      G.add_edge(random_tmp[0], random_tmp_target)
+
+    return G
+
+def cut_graph(G):
+    target_nodes = calc.find_max_nodes(G)
+    for t in target_nodes:
+      t_edges = G.neighbors(t[0])
+      for t_e in t_edges:
+        G.remove_edge(t[0], t_e)
+      G.remove_node(t[0])
+    return G
+
+
 def num_read_data():
     luc_data = np.loadtxt('data/100-0_r.csv', delimiter=",")
     hcc_data = np.loadtxt('data/0-100_r.csv', delimiter=",")
@@ -42,8 +82,17 @@ def num_read_cells(mm2):
     hcc_data = np.loadtxt('data/0-100_r.csv', delimiter=",") + 1
     mix_data = np.loadtxt('data/10-90_r.csv', delimiter=",", skiprows = 1) + 1
    
-    print luc_data*mm3
     return luc_data*mm3, hcc_data*mm3, mix_data*mm3
+def num_read_volume():
+    luc_data = np.loadtxt('data/100-0_r.csv', delimiter=",") + 1
+    hcc_data = np.loadtxt('data/0-100_r.csv', delimiter=",") + 1
+    mix_data = np.loadtxt('data/10-90_r.csv', delimiter=",", skiprows = 1) + 1
+
+    return luc_data, hcc_data, mix_data
+
+def calculate_mm3(cells, mm2):
+    cells_per_mm3 = calc.convert_volume(mm2)*10*3
+    return cells/cells_per_mm3
 
 def read_data():
     #3 samples per 7 time point
@@ -65,19 +114,6 @@ def opt_read_data(i):
     luc_data = luc_data.reshape(24)
     mix_data = mix_data.reshape(24)
     return np.array(x), luc_data
-    """
-    for i in range(len(luc_data)):
-      if luc_data[i] == 0:
-        luc_data[i] =  0.000000001
-      if mix_data[i] == 0:
-        mix_data[i] = 0.0000000001
-
-    print 'finish'
-    if int(i) == int(1):
-      return np.array(x), luc_data
-    if int(i) == int(2):
-      return np.array(x), mix_data
-    """
 
 if __name__ == '__main__':
   x,y = opt_read_data(2)
